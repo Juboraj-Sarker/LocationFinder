@@ -27,12 +27,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -59,11 +64,13 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class NearbyFragment extends Fragment {
 
 
+    InterstitialAd mInterstitialAd;
+
     View view;
 
     Spinner categorySP;
     EditText radiusET;
-    Button searchBTN;
+    ImageView searchBTN;
     LinearLayout mapLayout;
     RecyclerView recyclerView;
     PlaceAdapter adapter;
@@ -121,9 +128,21 @@ public class NearbyFragment extends Fragment {
 
         categorySP = (Spinner) view.findViewById(R.id.spinner_nearby_choice);
         radiusET = (EditText) view.findViewById(R.id.radius_ET);
-        searchBTN = (Button) view.findViewById(R.id.btn_search);
+        searchBTN = (ImageView) view.findViewById(R.id.btn_search);
         mapLayout = (LinearLayout) view.findViewById(R.id.mapLayout);
         recyclerView = (RecyclerView) view.findViewById(R.id.recyclerView);
+
+
+        mInterstitialAd = new InterstitialAd(getContext());
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_full_screen1));
+
+
+        MobileAds.initialize(getActivity().getApplicationContext(), getString(R.string.banner_home_footer_1));
+        AdView mAdView = (AdView) view.findViewById(R.id.adView1);
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+        mAdView.loadAd(adRequest);
+
+
 
         resultList = new ArrayList<>();
         geometryList = new ArrayList<>();
@@ -135,6 +154,15 @@ public class NearbyFragment extends Fragment {
         mapLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+                mInterstitialAd.loadAd(adRequest);
+
+                mInterstitialAd.setAdListener(new AdListener() {
+                    public void onAdLoaded() {
+                        showInterstitial();
+                    }
+                });
 
 
                 for (int i = 0; i < resultList.size(); i++) {
@@ -236,6 +264,13 @@ public class NearbyFragment extends Fragment {
 
 
         return view;
+    }
+
+
+    private void showInterstitial() {
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
     }
 
     private void getNearbyPlaces() {

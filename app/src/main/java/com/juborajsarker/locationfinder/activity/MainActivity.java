@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.juborajsarker.locationfinder.R;
 import com.juborajsarker.locationfinder.fragment.LocationFragment;
 import com.juborajsarker.locationfinder.fragment.NearbyFragment;
+import com.juborajsarker.locationfinder.fragment.RemoveAdFragment;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,14 +71,47 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new LocationFragment(), "Current Location");
+        adapter.addFragment(new LocationFragment(), "My Location");
         adapter.addFragment(new NearbyFragment(), "Nearby Places");
+        adapter.addFragment(new RemoveAdFragment(), "Remove Ads");
 
         viewPager.setAdapter(adapter);
     }
 
+    public void removeAds(MenuItem item) {
+
+        removeAd();
+
+    }
 
 
+    public void removeAd() {
+        try {
+            Intent rateIntent = removeAdsIntentForUrl("market://details");
+            startActivity(rateIntent);
+        }
+        catch (ActivityNotFoundException e)
+        {
+            Intent rateIntent = removeAdsIntentForUrl("https://play.google.com/store/apps/details");
+            startActivity(rateIntent);
+        }
+    }
+
+    private Intent removeAdsIntentForUrl(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(String.format("%s?id=%s", url, "com.juborajsarker.systeminfopro" )));
+        int flags = Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_MULTIPLE_TASK;
+        if (Build.VERSION.SDK_INT >= 21)
+        {
+            flags |= Intent.FLAG_ACTIVITY_NEW_DOCUMENT;
+        }
+        else
+        {
+            //noinspection deprecation
+            flags |= Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET;
+        }
+        intent.addFlags(flags);
+        return intent;
+    }
 
     class ViewPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragmentList = new ArrayList<>();
@@ -189,9 +223,9 @@ public class MainActivity extends AppCompatActivity {
         String filePath = app.sourceDir;
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("*/*");
-        intent.createChooser(intent,"SMS Scheduler");
+        intent.createChooser(intent,"Location Finder");
         intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(filePath)));
-        startActivity(Intent.createChooser(intent, "share SMS Scheduler using"));
+        startActivity(Intent.createChooser(intent, "share Location Finder using"));
 
     }
 

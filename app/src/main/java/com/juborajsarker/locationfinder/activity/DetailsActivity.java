@@ -21,6 +21,11 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBufferResponse;
@@ -40,6 +45,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DetailsActivity extends AppCompatActivity {
+
+    InterstitialAd mInterstitialAd;
 
     TextView nameTV, addressTV, phoneTV, websiteTV, latitudeTV, longitudeTV, availabilityTV, ratingTV, numberOfReviewTV;
     ImageView phoneIV, browseIV, mainIV;
@@ -90,6 +97,15 @@ public class DetailsActivity extends AppCompatActivity {
         progressDialog.setMessage("Loading data......\nPlease wait ......");
         progressDialog.setCancelable(false);
         progressDialog.show();
+
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_full_screen1));
+
+
+        MobileAds.initialize(getApplicationContext(), getString(R.string.banner_home_footer_1));
+        AdView mAdView = (AdView) findViewById(R.id.adView1);
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+        mAdView.loadAd(adRequest);
 
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
@@ -251,6 +267,16 @@ public class DetailsActivity extends AppCompatActivity {
             public void onClick(View v) {
 
 
+                AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+                mInterstitialAd.loadAd(adRequest);
+
+                mInterstitialAd.setAdListener(new AdListener() {
+                    public void onAdLoaded() {
+                        showInterstitial();
+                    }
+                });
+
+
                 Intent intent = new Intent(DetailsActivity.this, SingleMapsActivity.class);
                 intent.putExtra("name", nameTV.getText().toString());
                 intent.putExtra("address", addressTV.getText().toString());
@@ -271,6 +297,12 @@ public class DetailsActivity extends AppCompatActivity {
     }
 
 
+
+    private void showInterstitial() {
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
+    }
 
 
 

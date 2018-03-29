@@ -117,7 +117,8 @@
                         android:layout_gravity="center"
                         android:tint="#959595"
                         android:src="@drawable/ic_star_half"
-                        android:padding="5dp"/>
+                        android:padding="5dp"
+                        android:visibility="gone"/>
 
                     <TextView
                         android:id="@+id/ratingTV"
@@ -126,7 +127,15 @@
                         android:textSize="14sp"
                         android:text="4.5"
                         android:gravity="center"
-                        android:layout_gravity="center"/>
+                        android:layout_gravity="center"
+                        android:visibility="gone"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="Details"
+                        android:textSize="13sp"
+                        android:gravity="center"/>
 
                 </LinearLayout>
 

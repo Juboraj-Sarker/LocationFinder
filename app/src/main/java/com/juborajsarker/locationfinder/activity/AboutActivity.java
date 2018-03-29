@@ -59,8 +59,6 @@ public class AboutActivity extends AppCompatActivity {
         AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
         mInterstitialAd.loadAd(adRequest);
 
-
-
         mInterstitialAd.setAdListener(new AdListener() {
             public void onAdLoaded() {
                 showInterstitial();

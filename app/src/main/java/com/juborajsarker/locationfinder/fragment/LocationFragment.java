@@ -24,8 +24,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.PlaceDetectionClient;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.juborajsarker.locationfinder.R;
 import com.juborajsarker.locationfinder.activity.MapsActivity;
@@ -36,6 +45,8 @@ import java.util.Locale;
 
 
 public class LocationFragment extends Fragment {
+
+    InterstitialAd mInterstitialAd;
 
     private static final String TAG = "Details";
     View view;
@@ -54,7 +65,8 @@ public class LocationFragment extends Fragment {
 
     String longitude, latitude;
 
-
+    GeoDataClient mGeoDataClient;
+    PlaceDetectionClient mPlaceDetectionClient;
 
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
@@ -73,9 +85,22 @@ public class LocationFragment extends Fragment {
 
         view = inflater.inflate(R.layout.fragment_location, container, false);
 
+        mGeoDataClient = Places.getGeoDataClient(getContext(), null);
+        mPlaceDetectionClient = Places.getPlaceDetectionClient(getContext(), null);
+
+        mInterstitialAd = new InterstitialAd(getContext());
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_full_screen1));
+
 
         init();
         checkLocationPermission();
+
+        MobileAds.initialize(getActivity().getApplicationContext(), getString(R.string.banner_home_footer_1));
+        AdView mAdView = (AdView) view.findViewById(R.id.adView1);
+        AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+        mAdView.loadAd(adRequest);
+
+
 
 
         return view;
@@ -83,6 +108,7 @@ public class LocationFragment extends Fragment {
 
 
     private void init() {
+
 
         addressTV = (TextView) view.findViewById(R.id.addressTV);
         cityTV = (TextView) view.findViewById(R.id.cityTV);
@@ -125,6 +151,16 @@ public class LocationFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
+
+                AdRequest adRequest = new AdRequest.Builder().addTestDevice("93448558CC721EBAD8FAAE5DA52596D3").build();
+                mInterstitialAd.loadAd(adRequest);
+
+                mInterstitialAd.setAdListener(new AdListener() {
+                    public void onAdLoaded() {
+                        showInterstitial();
+                    }
+                });
+
                 progressDialog = new ProgressDialog(getContext());
                 progressDialog.setMessage("Please wait.....");
                 progressDialog.setCancelable(false);
@@ -151,6 +187,12 @@ public class LocationFragment extends Fragment {
     }
 
 
+    private void showInterstitial() {
+        if (mInterstitialAd.isLoaded()) {
+            mInterstitialAd.show();
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -161,6 +203,8 @@ public class LocationFragment extends Fragment {
                 == PackageManager.PERMISSION_GRANTED) {
 
             fullLocationService();
+
+           // getPlaceResult();
 
 
         }
@@ -317,10 +361,6 @@ public class LocationFragment extends Fragment {
             mustExecute();
 
 
-
-
-
-
         }
 
         @Override
@@ -337,58 +377,44 @@ public class LocationFragment extends Fragment {
     }
 
 
-    public void setLocation(Location loc) {
-
-        String longitude = String.valueOf(loc.getLongitude());
-        String latitude = String.valueOf(+loc.getLatitude());
 
 
-        /*------- To get city name from coordinates -------- */
-        String cityName = null;
-        String address = null;
-        String subCity = null;
-        String posterCode = null;
-        String division = null;
-        String country = null;
-        String countryCode = null;
 
+//    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == 1) {
+//            if (resultCode == RESULT_OK) {
+//                Place place = PlacePicker.getPlace(data, getContext());
+//                String toastMsg = String.format("Place: %s", place.getName());
+//                Toast.makeText(getContext(), toastMsg, Toast.LENGTH_LONG).show();
+//            }
+//        }
+//    }
 
-        Geocoder gcd = new Geocoder(getContext(), Locale.getDefault());
-        List<Address> addresses;
-        try {
-            addresses = gcd.getFromLocation(loc.getLatitude(),
-                    loc.getLongitude(), 1);
-            if (addresses.size() > 0) {
-
-                cityName = addresses.get(0).getLocality();
-                address = addresses.get(0).getFeatureName();
-                subCity = addresses.get(0).getSubLocality();
-                posterCode = addresses.get(0).getPostalCode();
-                division = addresses.get(0).getAdminArea();
-                country = addresses.get(0).getCountryName();
-                countryCode = addresses.get(0).getCountryCode();
-
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        addressTV.setText(address + ", " + subCity + ", " + cityName);
-
-        // addressTV.setText(address);
-        //  cityTV.setText(cityName);
-        //  subCityTV.setText(subCity);
-        posterCodeTV.setText(posterCode);
-        divisionTV.setText(division);
-        countryTV.setText(country);
-        countryCodeTV.setText(countryCode);
-        latitudeTV.setText(latitude);
-        longitudeTV.setText(longitude);
-
-        progressDialog.dismiss();
-    }
-
+//    public void getPlaceResult() {
+//
+//        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//
+//            return;
+//        }
+//        Task<PlaceLikelihoodBufferResponse> placeResult = mPlaceDetectionClient.getCurrentPlace(null);
+//        placeResult.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
+//            @Override
+//            public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
+//                PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
+//                for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+//                    Log.i(TAG, String.format("Place '%s' has likelihood: %g",
+//                            placeLikelihood.getPlace().getName(),
+//                            placeLikelihood.getLikelihood()));
+//
+//
+//
+//                }
+//                likelyPlaces.release();
+//            }
+//        });
+//    }
 
     private void refreshLocation() {
 
@@ -409,6 +435,7 @@ public class LocationFragment extends Fragment {
                     getActivity().getSystemService(Context.LOCATION_SERVICE);
 
               locationListener = new MyLocationListener();
+
             if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(),
                     Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -425,6 +452,8 @@ public class LocationFragment extends Fragment {
 
                     return;
                 }
+
+                
                 locationManager.requestLocationUpdates(
                         LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
 
@@ -549,5 +578,61 @@ public class LocationFragment extends Fragment {
 
 
     }
+
+    public void setLocation(Location loc) {
+
+        String longitude = String.valueOf(loc.getLongitude());
+        String latitude = String.valueOf(+loc.getLatitude());
+
+
+        /*------- To get city name from coordinates -------- */
+        String cityName = null;
+        String address = null;
+        String subCity = null;
+        String posterCode = null;
+        String division = null;
+        String country = null;
+        String countryCode = null;
+
+
+        Geocoder gcd = new Geocoder(getContext(), Locale.getDefault());
+        List<Address> addresses;
+        try {
+            addresses = gcd.getFromLocation(loc.getLatitude(),
+                    loc.getLongitude(), 1);
+            if (addresses.size() > 0) {
+
+                cityName = addresses.get(0).getLocality();
+                address = addresses.get(0).getFeatureName();
+                subCity = addresses.get(0).getSubLocality();
+                posterCode = addresses.get(0).getPostalCode();
+                division = addresses.get(0).getAdminArea();
+                country = addresses.get(0).getCountryName();
+                countryCode = addresses.get(0).getCountryCode();
+
+                int PLACE_PICKER_REQUEST = 1;
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        addressTV.setText(address + ", " + subCity + ", " + cityName);
+
+        // addressTV.setText(address);
+        //  cityTV.setText(cityName);
+        //  subCityTV.setText(subCity);
+        posterCodeTV.setText(posterCode);
+        divisionTV.setText(division);
+        countryTV.setText(country);
+        countryCodeTV.setText(countryCode);
+        latitudeTV.setText(latitude);
+        longitudeTV.setText(longitude);
+
+        progressDialog.dismiss();
+    }
+
 
 }

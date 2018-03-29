@@ -223,7 +223,7 @@
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="01 April, 2018"
+                    android:text="30 March, 2018"
                     android:textColor="#aa000000"
                     android:textSize="18sp"
                     android:padding="8dp"
